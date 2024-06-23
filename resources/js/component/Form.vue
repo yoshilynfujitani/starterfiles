@@ -34,6 +34,7 @@
                 </div>
             </div>
             <button
+                :disabled="isPending"
                 type="submit"
                 class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             >
@@ -43,24 +44,17 @@
     </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            name: "",
-            course: "",
-        };
-    },
-    methods: {
-        submitStudent() {
-            const { name, course } = this;
-            axios.post("/submit-student", { name, course }).then(({ data }) => {
-                this.name = "";
-                this.course = "";
+<script setup>
+import { ref } from "vue";
+import { useAddStudent } from "../QueryStore/Students/useAddStudent";
 
-                this.$emit("success");
-            });
-        },
-    },
-};
+const { addStudent, isPending } = useAddStudent();
+const name = ref("");
+const course = ref("");
+
+function submitStudent() {
+    addStudent({ name: name.value, course: course.value });
+    name.value = "";
+    course.value = "";
+}
 </script>

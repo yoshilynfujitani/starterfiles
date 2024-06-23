@@ -1,7 +1,6 @@
 import App from "@/component/App.vue";
-
-import Login from "@/pages/Login.vue";
-import Signup from "@/pages/Signup.vue";
+import Login from "./pages/Auth/Login.vue";
+import Signup from "./pages/Auth/Signup.vue";
 
 export const routes = [
     {

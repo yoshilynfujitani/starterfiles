@@ -1,4 +1,30 @@
-<template lang="">
+<script setup>
+import { ref } from "vue";
+import axios from "axios";
+import { useLogin } from "./Services/useLogin";
+import { VueQueryDevtools } from "@tanstack/vue-query-devtools";
+
+const { login: Login, isPending } = useLogin();
+const errorMsg = ref("");
+const loginDetails = ref({
+    email: "",
+    password: "",
+});
+
+const login = () => {
+    try {
+        Login(loginDetails.value);
+    } catch (error) {
+        errorMsg.value = error.response.data.message || "An error occurred!";
+    }
+};
+
+const clearErrMsg = () => {
+    errorMsg.value = "";
+};
+</script>
+<template>
+    <VueQueryDevtools />
     <Layout>
         <section class="bg-gray-50 dark:bg-gray-900">
             <div
@@ -15,7 +41,7 @@
                         </h1>
 
                         <div
-                            v-if="errorMsg != ''"
+                            v-if="errorMsg !== ''"
                             class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
                             role="alert"
                         >
@@ -35,7 +61,7 @@
                                     >Your email</label
                                 >
                                 <input
-                                    v-model="email"
+                                    v-model="loginDetails.email"
                                     type="email"
                                     name="email"
                                     id="email"
@@ -51,7 +77,7 @@
                                     >Password</label
                                 >
                                 <input
-                                    v-model="password"
+                                    v-model="loginDetails.password"
                                     type="password"
                                     name="password"
                                     id="password"
@@ -88,34 +114,4 @@
     </Layout>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            email: "",
-            password: "",
-            message: this.$route.query.messageSent,
-            errorMsg: "",
-        };
-    },
-    methods: {
-        login() {
-            const { email, password } = this;
-            axios
-                .post("/login", { email, password })
-                .then((res) => {
-                    if (res.status == 200) {
-                        this.$router.push("/");
-                    }
-                })
-                .catch((err) => {
-                    this.errorMsg = err.response.data.message;
-                });
-        },
-        clearErrMsg() {
-            this.errorMsg = "";
-        },
-    },
-};
-</script>
 <style lang=""></style>

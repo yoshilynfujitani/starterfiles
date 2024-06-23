@@ -1,99 +1,66 @@
 <template>
-    <Layout :authenticated="this.authenticated">
-        <div class="h-screen w- screen flex items-center justify-center">
+    <Layout1 :authenticated="authenticated">
+        <div class="h-screen w-screen flex items-center justify-center">
             <div class="shadow-lg p-5 rounded-xl">
-                <Edit @success="editSuccess" v-if="is_Edit" :id="editId" />
+                <Edit @success="editSuccess" v-if="isEdit" :id="editId" />
                 <Form @success="getter" v-else />
 
-                <Table
-                    :students="students"
-                    @editStudent="editStudent"
-                    @success="getter"
-                />
+                <div v-if="!isPending">
+                    <Table :students="students" @editStudent="editStudent" />
+                </div>
             </div>
         </div>
-    </Layout>
+    </Layout1>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, watch, computed } from "vue";
+import axios from "axios";
 import Form from "./Form.vue";
 import Table from "./Table.vue";
 import Edit from "./Edit.vue";
+import { useGetStudents } from "../QueryStore/Students/useGetStudents";
+import Layout1 from "../Layout/Layout.vue";
 
-import Message from "./Message.vue";
+const { isPending, data: students } = useGetStudents();
+const authenticated = ref(false);
+const isEdit = ref(false);
+const editId = ref(0);
 
-import Layout1 from "../Layout/Layout1.vue";
+function editStudent(id) {
+    editId.value = id;
+    isEdit.value = true;
+}
 
-export default {
-    components: {
-        Form,
-        Table,
-        Edit,
-        Message,
-        Layout1,
-    },
-    data() {
-        return {
-            count: 0,
-            countTen: 10,
-            students: [],
-            is_Edit: false,
-            editId: 0,
-            authenticated: 0,
-        };
-    },
-    methods: {
-        countPlusOne() {
-            this.count += 1;
-        },
-        countMinusOne() {
-            this.count -= 1;
-        },
-        countNuts() {
-            this.nuts = 0;
-        },
-        getter() {
-            axios.get("/get-students").then(({ data }) => {
-                console.log(data);
-                this.students = data;
-            });
-        },
-        editStudent(id) {
-            this.editId = id;
-            this.is_Edit = true;
-        },
-        editSuccess() {
-            this.editId = 0;
-            this.is_Edit = false;
+function editSuccess() {
+    editId.value = 0;
+    isEdit.value = false;
+    getter();
+}
 
-            this.getter();
-        },
-        checkAuth() {
-            axios.get("/checkUser").then(({ data }) => {
-                console.log(data);
-                this.authenticated = data;
-                console.log(this.authenticated);
-                if (this.authenticated == 0) {
-                    this.$router.push("/login");
-                }
-            });
-        },
-    },
-    computed: {
-        countPlusTen() {
-            return this.countTen + this.count;
-        },
-    },
-    mounted() {
-        this.getter();
-        this.checkAuth();
-    },
-    watch: {
-        authenticated(newValue) {
-            if (!newValue) {
-                this.$router.push("/login");
-            }
-        },
-    },
-};
+async function checkAuth() {
+    try {
+        const response = await axios.get("/checkUser");
+        authenticated.value = response.data;
+        if (!authenticated.value) {
+            this.$router.push("/login");
+        }
+    } catch (error) {
+        console.error("Error checking auth:", error);
+        authenticated.value = false;
+        this.$router.push("/login");
+    }
+}
+
+onMounted(() => {
+    checkAuth();
+});
+
+watch(authenticated, (newValue) => {
+    if (!newValue) {
+        this.$router.push("/login");
+    }
+});
 </script>
+
+<style scoped></style>

@@ -15,7 +15,17 @@ class LoginController extends Controller
             $user = User::where("email",$request->email)->first();
             if(Hash::check($request->password, $user->password)){
                 Auth::login($user);
-                return response()->json(['message' => 'Login successful'], 200);
+                $id = $user->id;
+                $email = $user->email;
+                $name = $user->name;
+                $isAuthenticated = Auth::check();
+
+                return response()->json([
+                    'message' => 'Login successful', 
+                    'userId' => $id, 
+                    'email' => $email, 
+                    'name' => $name,
+                    'isAuthenticated' => $isAuthenticated], 200);
             } else {
                 return response()->json(['message' => 'Invalid password'], 401);
             }
@@ -26,7 +36,6 @@ class LoginController extends Controller
     
 
     public function checkLogin(){
-        
         return Auth::check();
     }
 
